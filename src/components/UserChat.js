@@ -8,7 +8,7 @@ class UserChat extends React.Component {
     state = {username: '', userId: '', connected: false, members: [], openChats: [], systemMessages: [], message: '', receivedMessages: []}
     
     connectUser =  () => {
-        
+
         window.Ably = new Realtime({key: 'LVIkoQ.JX3Zrw:FcA71g3D2IQW-G3q', clientId: this.state.username});
         window.channel = window.Ably.channels.get('chatroom');
         window.channel.attach((err) => {
@@ -92,11 +92,20 @@ class UserChat extends React.Component {
                             };
                         }
 
-                        var tempMessages = this.state.receivedMessages;
-                        tempMessages.push(message)
-                        this.setState({
-                            receivedMessages: tempMessages
-                        })
+                        var tempMessages = []
+                        if (message.name === 'system') {
+                            tempMessages = this.state.systemMessages;
+                            tempMessages.push(message)
+                            this.setState({
+                                systemMessages: tempMessages
+                            })
+                        } else {
+                            tempMessages = this.state.receivedMessages;
+                            tempMessages.push(message)
+                            this.setState({
+                                receivedMessages: tempMessages
+                            })
+                        }
                     });
 
                 });
@@ -207,13 +216,14 @@ class UserChat extends React.Component {
     showSystemMessages = () => {
         if (!this.state.systemMessages.length) {
             return (
-                <div className="col-3 card m-1" style={{height: '60vh'}}>
-                    <p className="chat-header">System Messages</p>
-                    <p className="mt-5">There's no system messages yet</p>
-                </div>
+                <p>There's no system messages yet</p>
             );
         } else {
-            
+            return this.state.systemMessages.map((message) => {
+                return (
+                    <p>{message.data}</p>
+                );
+            });
         }
     }
 
@@ -221,7 +231,7 @@ class UserChat extends React.Component {
         if (this.state.connected) {
             return (
                 <div className="row">
-                    <div className="col-9 card chat">
+                    <div className="col-9 card">
                        <div className="chat-header">chat</div>
                        <div className="row d-flex justify-content-center">
                             <div className="col-8 card m-1" style={{height: '60vh'}}>
@@ -229,7 +239,10 @@ class UserChat extends React.Component {
                                     {this.showChats()}
                                 </div>
                             </div>
-                            {this.showSystemMessages()}
+                            <div className="col-3 card m-1 overflow-auto" style={{height: '60vh'}}>
+                                <p className="chat-header mb-5">System Messages</p>
+                                {this.showSystemMessages()}
+                            </div>
                        </div>
                     </div>
                     <div className="col-3 card active-users">
